@@ -2,7 +2,8 @@
 #Prep Composer sources prior to building using the Composer application
 # -Remove "Downloaded from internet warnings"
 # -Change owner
-# -Change informatoin plists to source folder name
+# -Change information plists to source folder name
+# -Remove .DS_Store files
 #  NOTE- this assumes that the version number is after the last - in the file name
 
 
@@ -51,3 +52,9 @@ defaults write "$1/Settings/English.lproj/Description.plist" IFPkgDescriptionTit
 defaults write "$1/Settings/Info.plist" CFBundleGetInfoString -string "$NAMENOSPACES"
 defaults write "$1/Settings/Info.plist" CFBundleIdentifier -string "$NAMENOSPACES"
 defaults write "$1/Settings/Info.plist" CFBundleShortVersionString -string "$VERSION"
+
+#
+# Remove DS_Store files
+#
+
+find "$1/ROOT" -iname .DS_Store -exec rm {} \;
