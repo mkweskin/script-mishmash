@@ -1,0 +1,84 @@
+#!/bin/sh
+#Prep Composer sources prior to building using the Composer application
+# -Remove "Downloaded from internet warnings"
+# -Change owner (BUT NOT PERMISSIONS)
+# -Change information plists to source folder name
+# -Remove .DS_Store files
+#  NOTE- this assumes that the version number is after the last '-' in the file name
+
+########
+# Provide the name of the Composer package location to perform actions on and check that the folder exists
+########
+
+if [ -n "$1" ]
+then
+    PATHTOPKG="$1"
+else
+    echo 'Argument missing: Enter the path to the Composer installer source to edit here (hint: try /Library/Application Support/JAMF/Composer/Sources/<source name>)'
+    exit 1
+fi
+
+if [ ! -d "$1" ]
+then
+    echo Source directory not found
+    exit 1
+fi
+
+
+########
+# Remove "Downloaded from internet warnings" and change owner to root:admin
+# NOTE: THIS DOES NOT CHANGE PERMISSIONS, JUST OWNER
+########
+
+#Check that the composer source folder exists
+if [ ! -d "$1/ROOT" ]
+then
+    echo Source directory is missing ROOT folder
+    exit 1
+fi
+
+chown -R root:admin "$1/ROOT"
+xattr -d -r com.apple.quarantine "$1/ROOT"
+
+########
+# Use the folder name to change the information plists
+########
+
+#defaults command requires a full path to the plist
+
+FULLPATH="$PWD/$1"
+echo Full Path: $FULLPATH
+
+if [[ ! -d $FULLPATH/Settings ]]; then
+    echo "🙈🙈🙈ERROR finding Settings folder in $FULLPATH"
+    exit 1
+fi
+
+NAME=$(basename "$1")
+NAMENOSPACES=`echo $NAME | sed 's/ //g'`
+echo Name+Version: "$NAMENOSPACES"
+NAMENOVERSION=`echo $NAMENOSPACES | sed 's/\(.*\)-.*/\1/'`
+echo Name only: "$NAMENOVERSION"
+VERSION=`echo $NAMENOSPACES | sed 's/.*-\(.*\)/\1/'`
+echo Version: "$VERSION"
+
+defaults write "$FULLPATH/Settings/English.lproj/Description.plist" IFPkgDescriptionDescription -string "The program: $NAME"||echo error
+defaults write "$FULLPATH/Settings/English.lproj/Description.plist" IFPkgDescriptionTitle -string "$NAMENOSPACES"||echo error
+defaults write "$FULLPATH/Settings/Info.plist" CFBundleGetInfoString -string "$NAMENOSPACES"||echo error
+defaults write "$FULLPATH/Settings/Info.plist" CFBundleIdentifier -string "edu.si.lab.$NAMENOVERSION"||echo error
+defaults write "$FULLPATH/Settings/Info.plist" CFBundleShortVersionString -string "$VERSION"||echo error
+
+chmod a+r "$FULLPATH/Settings/Info.plist"
+chmod a+r "$FULLPATH/Settings/English.lproj/Description.plist"
+
+########
+# Remove '.DS_Store' files
+########
+
+find "$1/ROOT" -iname .DS_Store -exec rm {} \;
+
+########
+# Done
+########
+
+echo `basename $1` - Done

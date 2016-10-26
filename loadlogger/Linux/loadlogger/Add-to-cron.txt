@@ -1,0 +1,1 @@
+*/5 * * * * /home/user/loadlogger/loadlogger-linux.sh

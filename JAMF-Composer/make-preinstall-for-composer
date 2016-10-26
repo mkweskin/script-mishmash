@@ -24,7 +24,7 @@ fi
 #Check if a script already exists
 if [ -f "$1/Scripts/$SCRIPTTOMAKE" ]
 then
-    echo "That source already has a \"$SCRIPTTOMAKE\" script."
+    echo `basename "$1"` "already has a \"$SCRIPTTOMAKE\" script."
     echo "Overwrite that file? (yes/no)"
     read OVERWRITE
     if [ ! $OVERWRITE = "yes" ]

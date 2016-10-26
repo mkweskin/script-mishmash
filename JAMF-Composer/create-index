@@ -1,0 +1,36 @@
+#!/bin/sh
+
+########
+# Provide the name of the Composer package location to perform actions on and check that the folder exists
+########
+
+
+if [ -n "$1" ]
+then
+    fullpath=$(cd "$1"; pwd)
+    #echo $fullpath
+else
+    echo 'Argument missing: Enter the path to the Composer installer source to edit here (hint: try /Library/Application Support/JAMF/Composer/Sources/<source name>)'
+    exit 1
+fi
+
+if [ ! -d "$fullpath" ]
+then
+    echo Source directory not found
+    exit 1
+fi
+
+
+########
+# Parse folders for install info
+########
+
+find "$fullpath" -type d -depth 1 >/tmp/sourcedirs || exit 1
+
+while read currfolder
+do
+    PKG=`basename "$currfolder"`.pkg
+    B=`defaults read "$currfolder/Settings/Info.plist" CFBundleIdentifier`
+    PKGVERS=`defaults read "$currfolder/Settings/Info.plist" CFBundleShortVersionString`
+    echo "$PKG\t$B\t$PKGVERS\t01"
+done <"/tmp/sourcedirs"
