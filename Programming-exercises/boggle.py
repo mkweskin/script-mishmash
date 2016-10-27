@@ -31,7 +31,7 @@ def readPrefixes(prefixes):
 		print "reading %d"%length
 		with open(str(length)+"prefix", 'r') as f:
 			currprefix = f.read().splitlines()
-		prefixes.append(currprefix)
+		prefixes.append(set(currprefix))
 	return prefixes
 
 def computeScore(found_words):
@@ -39,14 +39,15 @@ def computeScore(found_words):
 	Computes the score for a given list of words
 	Scoring
 	Letters:  3 4 5 6 7 8 >8
-	Score:    1 2 3 4 5 6  6
+	Score:    1 1 2 3 5 11  11
 	"""
+	scoring = [0,0,1,1,2,3,5,11]
 	score = 0
 	for word in found_words:
-		if len(word) >= 8:
-			score += 6
+		if len(word) <= 8:
+			score += scoring[len(word)-1]
 		else:
-			score += len(word)-2
+			score += 11
 	print score
 	return score
 
@@ -66,7 +67,9 @@ def weightedLetters(num_chars):
 	"""Fill a list with random letters with frequency weighted by occurence in english based on:
 	https://en.wikipedia.org/wiki/Letter_frequency
 	"""
-	letters = ['a'] * 8 + ['b'] * 2 + ['c'] * 8 + ['d'] * 4 + ['e'] * 13 + ['f'] * 2 + ['g'] * 2 + ['h'] * 6 + ['i'] * 7 + ['k'] * 1 + ['l'] * 4 + ['m'] * 2 + ['n'] * 7 + ['o'] * 8 + ['p'] * 2 + ['r'] * 6 + ['s'] * 6 + ['t'] * 9 + ['u'] * 3 + ['v'] * 1 + ['w'] * 2 + ['y'] * 2 
+#	letters = ['a'] * 8 + ['b'] * 2 + ['c'] * 8 + ['d'] * 4 + ['e'] * 13 + ['f'] * 2 + ['g'] * 2 + ['h'] * 6 + ['i'] * 7 + ['k'] * 1 + ['l'] * 4 + ['m'] * 2 + ['n'] * 7 + ['o'] * 8 + ['p'] * 2 + ['r'] * 6 + ['s'] * 6 + ['t'] * 9 + ['u'] * 3 + ['v'] * 1 + ['w'] * 2 + ['y'] * 2
+#   Hand adjusted
+	letters = ['a'] * 8 + ['b'] * 2 + ['c'] * 2 + ['d'] * 4 + ['e'] * 26 + ['f'] * 2 + ['g'] * 2 + ['h'] * 6 + ['i'] * 7 + ['k'] * 1 + ['l'] * 8 + ['m'] * 2 + ['n'] * 12 + ['o'] * 8 + ['p'] * 2 + ['r'] * 12 + ['s'] * 18 + ['t'] * 12 + ['u'] * 3 + ['v'] * 1 + ['w'] * 2 + ['y'] * 2
 	rand_list = []
 	for x in range(num_chars):
 		rand_list.append(letters[random.randint(0,len(letters)-1)])
@@ -109,7 +112,7 @@ def findWords(chars):
 	G.add_edges_from([(1,2),(2,3),(3,4),(5,6),(6,7),(7,8),(9,10),(10,11),(11,12),(13,14),(14,15),(15,16),(1,5),(2,6),(3,7),(4,8),(5,9),(6,10),(7,11),(8,12),(9,13),(10,14),(11,15),(12,16),(1,6),(2,7),(3,8),(5,10),(6,11),(7,12),(9,14),(10,15),(11,16),(2,5),(3,6),(4,7),(6,9),(7,10),(8,11),(10,13),(11,14),(12,16)])
 
 	found_words=[]
-	
+
 	for node in G.nodes_iter():
 		curr_word = ""
 		visited = []
@@ -138,11 +141,11 @@ def likelyChars(chars):
 	if vowel_count < min_vowels or s_count < min_s or t_count < min_t:
 		return False
 	else:
-		return True	
+		return True
 
 
 with open("enable1.txt") as f:
-    dictionary = f.read().splitlines()
+    dictionary = set(f.read().splitlines())
 
 log = "best.txt"
 prefixes = []
@@ -163,11 +166,11 @@ while True:
 			best_chars = chars
 
 			# A bit of optimization, although I don't think it's very affective
-			if best_score > 800:
+			if best_score > 850:
 				saved_chars = chars
-				for y in range(1,3):
+				for y in range(1,10):
 					chars = saved_chars
-					for x in range(1,3):
+					for x in range(1,20):
 						chars = weightedModifyString(chars)
 						chars = weightedModifyString(chars)
 						curr_score = findWords(chars)
@@ -176,7 +179,7 @@ while True:
 						    	f.write(str(curr_score)+" "+str(chars)+"\n")
 						    best_score = curr_score
 						    best_chars = chars
-				for z in range(1,4):
+				for z in range(1,20):
 					chars = saved_chars
 					random.shuffle(chars)
 					curr_score = findWords(chars)
