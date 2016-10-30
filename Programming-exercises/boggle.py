@@ -1,11 +1,13 @@
 import networkx as nx
 import random
+import copy
 
 class user_dictionary(object):
     """A dictionary object containing words and prefixes."""
 
     def __init__(self, filename):
         self.filename = filename
+        self.prefixes = None
         self.read()
 
     def read(self):
@@ -34,6 +36,8 @@ class puzzle(object):
         (7,11),(8,12),(9,13),(10,14),(11,15),(12,16),(1,6),(2,7),(3,8),(5,10),
         (6,11),(7,12),(9,14),(10,15),(11,16),(2,5),(3,6),(4,7),(6,9),(7,10),
         (8,11),(10,13),(11,14),(12,16)])
+        self.score = None
+        self.found_words = None
 
     def weighted_fill(self):
         """
@@ -96,22 +100,46 @@ class puzzle(object):
             else:
                 self.score += 11
 
+    def switch_pos(self, switch_1, switch_2):
+        """Switches the position of two characters in the matrix."""
+        self.chars[switch_1], self.chars[switch_2] = self.chars[switch_2], self.chars[switch_1]
+
+
+
 
 
 def main():
     my_dict = user_dictionary("enable1.txt")
-    my_puzzle = puzzle("")
+    
 
     count = 0
+    high_score = puzzle("")
     while True:
-        my_puzzle.weighted_fill()
-        my_puzzle.solve(my_dict)
-        #print (my_puzzle.chars)
-        #print (my_puzzle.score)
-        #print (len(my_puzzle.found_words))
+        curr_puzzle = puzzle("")
+        curr_puzzle.weighted_fill()
+        curr_puzzle.solve(my_dict)
+
+        if curr_puzzle.score > high_score.score:
+            high_score = copy.deepcopy(curr_puzzle)
+
+        #Optimize high scoring arrangements
+        if curr_puzzle.score > 700:
+            being_optimized = copy.deepcopy(curr_puzzle)
+            print ("Optimizing... %d"%being_optimized.score)
+            for x in range(2000):
+                curr_puzzle.switch_pos(
+                    random.randint(0,len(curr_puzzle.chars)-1),
+                    random.randint(0,len(curr_puzzle.chars)-1))
+                curr_puzzle.solve(my_dict)
+                print(curr_puzzle.score,(curr_puzzle.score > being_optimized.score))
+            quit()
+
+
         count += 1
         if count % 1000 == 0:
-            print count
+            print (count)
+            print (high_score.score)
+            print (high_score.chars)
 
 if __name__ == "__main__":
     main()
